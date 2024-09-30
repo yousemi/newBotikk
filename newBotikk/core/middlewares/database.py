@@ -1,65 +1,68 @@
 import sqlite3 as sq
 
-db = sq.connect('C:/Users/Alexey/PycharmProjects/newBotikk/data.sqlite')
+db = sq.connect('C:/Users/YouSeMi/PycharmProjects/newBotikk/data.sqlite')
 
-cur = db.cursor()
-cur.execute('SELECT id_day,id_grup,id_predmets,lessonsNamber,id_prepod,cab FROM `raspisanie` WHERE id_grup = "3" AND id_day == "1"')
-fourteenth_gr = cur.fetchall()
-infogrp = ''
-#for el in users:
-#    info += f"Имя {el[1]}, пароль: {el[2]}\n"
-for raspis in fourteenth_gr:
-    day = f"{raspis[0]}"
-    if day == '1':
-        print("Понедельник: ")
-        break
-    if day == '2':
-        print("Вторник")
-        break
-    if day == '3':
-        print("Среда")
-        break
-    if day == '4':
-        print("Четверг")
-        break
-    if day == '5':
-        print("Пятница")
-        break
-    if day == '6':
-        print("Суббота")
-        break
+from aiogram import Bot, Dispatcher
 
 
+async def change_group(id_bot, id_group):
+    cur = db.cursor()
+    cur.execute(f'UPDATE tg_id SET id_group_tg = {id_group} WHERE id = {id_bot}')
+    db.commit()
+    cur.close()
+
+async def receiving_an_group_from_user(id_bot):
+    cur = db.cursor()
+    cur.execute(f'SELECT id_group_tg FROM tg_id WHERE id = {id_bot}')
+    min_info = cur.fetchone()
+    for info_of_group_user in min_info:
+        return info_of_group_user
+
+async def add_a_user_to_database(id_bot):
+    cur = db.cursor()
+    cur.execute(f'INSERT INTO tg_id (id, id_group_tg)VALUES ({id_bot}, 0) ON CONFLICT (id) DO NOTHING')
+    db.commit()
+    print('add user to db')
 
 
-for raspis in fourteenth_gr:
+async def giving_an_raspis_to_user(day, id_group, bot: Bot, id_user):
+    # Функция для отправки дня пользователю
+    async def send_day_to_user(day):
+        if day == '1':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Понедельник\n")
+        elif day == '2':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Вторник\n")
+        elif day == '3':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Среду\n")
+        elif day == '4':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Четверг\n")
+        elif day == '5':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Пятницу\n")
+        elif day == '6':
+            await bot.send_message(id_user, "Конечно, твое расписание на: Субботу\n")
 
-    day = f"{raspis[0]}"
-    infogrp = f"Айди предмета: {raspis[2]}\nНомер урока: {raspis[3]}\nАйди препода: {raspis[4]}\nКабинет: {raspis[5]}\n" #Давай заебал, завтра садись и пиши уебок
-    print(infogrp)
+    # Функция для получения расписания и отправки его пользователю
+    async def send_raspis_with_day(day, id_group):
+        cur = db.cursor()
+        cur.execute(
+            f'SELECT predmets.name, raspisanie.lessonsNamber, prepod.fio, raspisanie.cab '
+            f'FROM raspisanie JOIN prepod ON raspisanie.id_prepod = prepod.id '
+            f'JOIN predmets ON raspisanie.id_predmets = predmets.id '
+            f'WHERE raspisanie.id_day = {day} AND raspisanie.id_grup = {id_group}')
 
+        info = cur.fetchall()
+        if info:
+            await bot.send_message(id_user, "----------------------------------------------\nПара | Предмет | Преподаватель | Кабинет")
+            for lesson in info:
+                predmet = lesson[0]
+                lesson_number = lesson[1]
+                prepod = lesson[2]
+                cab = lesson[3]
+                # Форматируем и отправляем строку пользователю
+                await bot.send_message(id_user, f"{lesson_number} | {predmet} | {prepod} | {cab}")
+        else:
+            await bot.send_message(id_user, "Нет расписания на выбранный день.")
 
-
-cur.close()
-
-
-db.close()
-
-
-
-
-# ps = db.cursor()
-# ps.execute('SELECT password FROM `user_create` WHERE password = "123"')
-# passwords = ps.fetchall()
-# infopsw = ''
-# for el in users:
-#    info += f"Имя {el[1]}, пароль: {el[2]}\n"
-# for psw in passwords:
-#    infopsw = f"пароль: {psw[0]}\n"
-#    print(infopsw)
-
-
-# ps.close()
-
-
-# db.close()
+    # Отправляем день и расписание пользователю
+    await send_day_to_user(day)
+    await send_raspis_with_day(day, id_group)

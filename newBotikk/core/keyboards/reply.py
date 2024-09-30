@@ -8,16 +8,16 @@ main_button = ReplyKeyboardMarkup(keyboard=[
         KeyboardButton(
             text='Узнать расписание'
         )
-    ],
-    [
-        KeyboardButton(
-            text='Режим работы и контактная информация административных отделений'
-        ),
-        KeyboardButton(
-            text='Заявления установленного образца'
-        )
-    ],
-    ])
+    ]])
+    # [
+    #     KeyboardButton(
+    #         text='Режим работы и контактная информация административных отделений'
+    #     ),
+    #     KeyboardButton(
+    #         text='Заявления установленного образца'
+    #     )
+    # ],
+    # ])
 
 
 sel_kurs = ReplyKeyboardMarkup(keyboard=[
@@ -29,13 +29,13 @@ sel_kurs = ReplyKeyboardMarkup(keyboard=[
         text='2 курс'
     )
     ],
-    [
-    KeyboardButton(
-        text='3 курс'
-    ),
-    KeyboardButton(
-        text='4 курс'
-    )],
+    # [
+    # KeyboardButton(
+    #     text='3 курс'
+    # ),
+    # KeyboardButton(
+    #     text='4 курс'
+    # )],
     [
     KeyboardButton(
         text='Вернуться в главное меню'
